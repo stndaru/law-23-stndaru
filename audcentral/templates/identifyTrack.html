@@ -11,12 +11,24 @@
     <div style="display:flex;justify-content:center;align-items:center;margin-top: 100px;">
         <p style="font-size: 50px;">Upload Your File Here..</p>
     </div>
-    {% if audio_info %}
-        <div style="display:flex;justify-content:center;align-items:center;margin-top: 10px;">
-            <p>{{ audio_info.length }}</p>
-            <p>{{ status }}</p>
+    <div style="display:flex;flex-direction: column;">
+        {% if status %}
+        <div style="display:flex;justify-content:center;align-items:center;margin-top: 4px;">
+            <p>Status: {{ status }}</p>
         </div>
-    {% endif %}
+        {% endif %}
+        {% if status_description %}
+            <div style="display:flex;justify-content:center;align-items:center;margin-top: 4px;">
+                <p>Status Description: {{ status_description }}</p>
+            </div>
+        {% endif %}
+        {% if audio_info %}
+            <div style="display:flex;justify-content:center;align-items:center;margin-top: 4px;">
+                <p>Audio File Length: {{ audio_info.length }}</p>
+            </div>
+        {% endif %}
+    </div>
+    
     <div id="fileform" style="display:flex;justify-content:center;align-items:center;margin-top: 10px;">
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
@@ -25,5 +37,33 @@
             <button type="submit">Submit</button>
         </form>
     </div>
+
+    <div style="display:flex;justify-content:center;align-items:center;margin-top: 100px;">
+        {% if status and status == "Success" %}
+        <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;max-width: 50%;">
+            <h3>Analyzed Result:</h3>
+            {% if analyze_result %}
+                <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;margin-top: 4px;">
+                    <p>Raw Analytical Result: </p>
+                    <p>{{ analyze_result }}</p>
+                </div>
+            {% endif %}
+            {% if lastFM_data_detailed %}
+                <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;margin-top: 4px;">
+                    <p>Closest Song Details based on Title (Last.FM): </p>
+                    <p>{{ lastFM_data_detailed }}</p>
+                </div>
+            {% endif %}
+            {% if genius_data_detailed %}
+                <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;margin-top: 4px;">
+                    <p>Closest Song Details based on Title (Genius): </p>
+                    <p>{{ genius_data_detailed }}</p>
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+
 </body>
 </html>

@@ -4,3 +4,8 @@
 
 {% endfor %}
 
+{% if error %}
+
+    {{ error.error }} | {{ error.message }}
+
+{% endif %}

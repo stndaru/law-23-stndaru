@@ -1,4 +1,24 @@
+# Audio Central v1
+#### Layanan Aplikasi & Web Project by Stefanus Ndaru W - 2006526812
+
+## List of Functions
+
+### [Flagship Feature] Song Randomizer
+
+### [Flagship Feature] Song Recognizer
+
+### Top Tracks by Region
+
+## Application/Web Service Development Difficulties & Complexity
+
+## Application/Web Service Usability/Urgency
+
+## Application/Web Service Uniqueness
+
+---
+
 ## How to run
+Credit to Adrian Ardizza (Meta501)
 ### Locally
 #### Requirements
 - Python 3.10
