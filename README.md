@@ -202,23 +202,49 @@ JSON View
 ## Application/Web Service Development Difficulties & Complexity
 Eventhough the web service seems simple, there are a lot of difficulties that I had to face:    
 1. File Upload via Form and Curl    
-asda
+Originally I had no experience of using Django file upload system. I had to look up a blog on how to use it and how to access the file. From the web browser view, its simple just to use forms, but using `curl`, it was very difficult and I had to look up multiple Stack Overflow page and Curl Manpage just to get it working.
 2. API Management (Fetching & Error Handling)    
-Lorem
+The service I made is a combination of multiple other services, and having to manage accessing each of them is proven to be difficult. There are multiple edge cases and possibility for the API to broke, so I had to mitigate a lot of them through `try-except` clause by Python
 3. API Merging & Requests   
-Lorem
+As mentioned before, this service combines multiple other services, and having to pass different parameters between each one is very hard as one service could return something that's different from the other. Take for example the code below. Here, I had to parse the data obtained from Genius to Last.FM, and this require me to read the documentation, figure out the return key, and pass it onwards to the Last FM request   
+
+```python
+while genius_data['meta']['status'] == 404:
+    song_id = random.randint(1,10000000)
+    genius_request = "https://api.genius.com/songs/" + str(song_id)
+    genius = requests.get(genius_request, headers={'Authorization': 'Bearer ' + GENIUS_TOKEN})
+    genius_data = json.loads(genius.text)
+    time.sleep(2)
+
+song_title = genius_data["response"]["song"]["title"]
+
+lastFM = requests.get(f"http://ws.audioscrobbler.com/2.0/?method=track.search&track={song_title}&api_key={LASTFM_TOKEN}&format=json")
+lastFM_data = json.loads(lastFM.text)
+
+if len(lastFM_data['results']['trackmatches']['track']) > 0:
+    chosen_song_lastFM = lastFM_data['results']['trackmatches']['track'][0]
+
+    LFM_song_title = chosen_song_lastFM['name']
+    LFM_song_artist = chosen_song_lastFM['artist']
+
+    lastFM_detailed_song = requests.get(f"http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key={LASTFM_TOKEN}&artist={LFM_song_artist}&track={LFM_song_title}&format=json")
+    lastFM_data_detailed = json.loads(lastFM_detailed_song.text)
+```  
 4. Hardware Limitation   
-Lorem
+As mentioned in the background, I had to drop one of my idea which is the Whisper Text Transcription because of lack in funding for GCP machine
 5. Front-End and Back-End    
-Lorem
+On top the service where I had to respond with a JSON response, I also made a simple but effective front-end. Albeit its not as fancy as the tailwind and bootstrapped UI, the logic in passing the data was difficult and taken up all the time I had plan to beautify the looks
 
 ## Application/Web Service Usability/Urgency
 This website can have multiple functionalities based on the available features, which are:   
-1. Find an unknown song title and details from an audio
-2. Search for song you want to find the details of
-3. Find song details in general via JSON response easily
-4. Search for a random song
-5. Search for top tracks in a country
+1. Find an unknown song title and details from an audio   
+Have you ever had a moment where you have a song file, but doesn't know what the title is and wanted to know? Now you can easily do that with this service. On top of that, you'll also get the associated details from Genius and Last FM
+2. Search for song you want to find the details of via JSON response easily    
+Searching for song can be tedious especially if you want it to be integrated to your system. With this service, it can be as easy as providing a song title, and we'll fetch the Genius and Last FM details for you
+3. Search for a random song   
+Are you bored with your current song? Want to find something new? Well with this service, we can provide you with a random song, completely random and without any boundaries. Best of all, you'll get the complete details about the song from Genius and Last FM with it
+4. Search for top tracks in a country   
+Want to know what people in your region are listening? Look no further. With this service, you can get a list of top songs being played in your area so you can keep up to date with what people around you are listening
 
 ## Application/Web Service Uniqueness
 Although there are a few song recognizer software, only few could support a simple yet effective function and webservice that could integrate multiple platforms. Currently, there are no song recognizer platform that could automatically fetch result from Genius and Last.FM, and if you're an avid Last.FM user, this web service is for you. Just upload a small clip of a song, and this service will fetch the corresponding Genius and Last.FM details for your convenience! No longer are the days you have to manually find the song after obtaining the title. And best of all, this is the only platform where you can integrate it anywhere that supports file upload and JSON result!  
