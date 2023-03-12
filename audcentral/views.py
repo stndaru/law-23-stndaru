@@ -38,15 +38,42 @@ def fetchTrack(audio, audio_info):
     if analyze_result['status'] == "error":
         status_description = "Our service could not identify the song. Please make sure to upload the correct file or an identifiable song and try again. \nDetailed error: "
         status_description += f"{analyze_result['error']['error_code']} | {analyze_result['error']['error_message']}"
-        
-        try:
-            if len(analyze_result['result']) is None or analyze_result['result'] == 0:
-                status_description = "We've received your audio, but unfortunatly, our service could not identify the song."
-        except:
-            pass
+
+        context = {
+                    "status" : status,
+                    "audio_info" : audio_info,
+                    "status_description" : status_description,
+                    "song_title" : analyze_result,
+                    "artist" : analyze_result,
+                    "analyze_result" : analyze_result,
+                    "genius_data" : genius_data,
+                    "genius_data_detailed" : genius_data_detailed,
+                    "lastFM_data" : lastFM_data,
+                    "lastFM_data_detailed" : lastFM_data_detailed,
+                }
+        return context
         
     else:
-        song_title = analyze_result['result']['title']
+        try:
+            song_title = analyze_result['result']['title']
+            if analyze_result['result'] is None or len(analyze_result['result']) == 0 or analyze_result['result']['title']:
+                status_description = "We've received your audio, but unfortunatly, our service could not identify the song."
+
+        except:
+            status_description = "Our service could not identify the song. Please make sure to upload the correct file or an identifiable song and try again."
+            context = {
+                "status" : status,
+                "audio_info" : audio_info,
+                "status_description" : status_description,
+                "song_title" : analyze_result,
+                "artist" : analyze_result,
+                "analyze_result" : analyze_result,
+                "genius_data" : genius_data,
+                "genius_data_detailed" : genius_data_detailed,
+                "lastFM_data" : lastFM_data,
+                "lastFM_data_detailed" : lastFM_data_detailed,
+            }
+            return context
 
         # Check Genius
         genius_request = "https://api.genius.com/search?q=" + song_title

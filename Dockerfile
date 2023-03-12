@@ -5,6 +5,9 @@ WORKDIR /app
 COPY Pipfile /app
 COPY Pipfile.lock /app
 RUN pip3 install pipenv
+RUN pip install requests
+RUN pip3 install requests
+CMD ["pip","install","requests"]
 RUN pipenv install
 COPY . /app 
 ENTRYPOINT ["pipenv"] 
