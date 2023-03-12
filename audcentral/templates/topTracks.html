@@ -1,11 +1,22 @@
-{% for track in result.tracks.track %}
+<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;margin-top: 100px;">
+    <h3>Top Tracks in {{ country }}</h3>
 
-    {{ track.name }}
+    <div>
+        <ul>
+        {% for track in data.tracks.track %}
 
-{% endfor %}
+            <li>{{ track.name }}</li>
 
-{% if error %}
+        {% endfor %} 
+        </ul>
+       
+    </div>
 
-    {{ error.error }} | {{ error.message }}
 
-{% endif %}
+    {% if error %}
+
+        {{ error.error }} | {{ error.message }}
+
+    {% endif %}
+</div>
+

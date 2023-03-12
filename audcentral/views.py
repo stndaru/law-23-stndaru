@@ -80,6 +80,8 @@ def fetchTrack(audio, audio_info):
         "status" : status,
         "audio_info" : audio_info,
         "status_description" : status_description,
+        "song_title" : analyze_result['result']['title'],
+        "artist" : analyze_result['result']['artist'],
         "analyze_result" : analyze_result,
         "genius_data" : genius_data,
         "genius_data_detailed" : genius_data_detailed,
@@ -181,14 +183,24 @@ def getTopTrackRegion(request, country):
     except:
         pass
 
-    return render(request, 'topTracks.html', {'result': json_data})
+    context = {
+        "country" : country,
+        "data" : json_data,
+    }
+
+    return render(request, 'topTracks.html', context)
 
 def getTopTrackRegionJSON(request, country):
     country_id = country
     response = requests.get(f"http://ws.audioscrobbler.com/2.0/?method=geo.gettoptracks&country={country_id}&api_key={LASTFM_TOKEN}&format=json")
     data = json.loads(response.text)
 
-    return HttpResponse(json.dumps(data), content_type="application/json")
+    context = {
+        "country" : country,
+        "data" : data,
+    }
+
+    return HttpResponse(json.dumps(context), content_type="application/json")
 
 
 # Get Track Details

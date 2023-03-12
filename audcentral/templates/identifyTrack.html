@@ -11,7 +11,7 @@
     <div style="display:flex;justify-content:center;align-items:center;margin-top: 100px;">
         <p style="font-size: 50px;">Upload Your File Here..</p>
     </div>
-    <div style="display:flex;justify-content:center;align-items:center;margin-top: 100px;">
+    <div style="display:flex;justify-content:center;align-items:center;">
         <div style="display:flex;flex-direction: column;max-width: 50%;">
             {% if status %}
             <div style="display:flex;justify-content:center;align-items:center;margin-top: 4px;">
@@ -45,6 +45,12 @@
         {% if status and status == "Success" %}
         <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;max-width: 50%;">
             <h3>Analyzed Result:</h3>
+            {% if song_title and artist %}
+                <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;margin-top: 4px;">
+                    <p>Song Name and Artist: </p>
+                    <p>{{ song_title }} - {{ artist }}</p>
+                </div>
+            {% endif %}
             {% if analyze_result %}
                 <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;margin-top: 4px;">
                     <p>Raw Analytical Result: </p>
