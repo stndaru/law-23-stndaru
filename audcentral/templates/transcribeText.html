@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Central - Track Identification</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+</head>
+<body>
+    <div style="display:flex;justify-content:center;align-items:center;margin-top: 100px;">
+        <p style="font-size: 50px;">Upload Your File Here..</p>
+    </div>
+    <div style="display:flex;justify-content:center;align-items:center;">
+        <div style="display:flex;flex-direction: column;max-width: 50%;">
+            {% if status %}
+            <div style="display:flex;justify-content:center;align-items:center;margin-top: 4px;">
+                <p>Status: {{ status }}</p>
+            </div>
+            {% endif %}
+            {% if status_description %}
+                <div style="display:flex;justify-content:center;align-items:center;margin-top: 4px;">
+                    <p>Status Description: {{ status_description }}</p>
+                </div>
+            {% endif %}
+            {% if audio_info %}
+                <div style="display:flex;justify-content:center;align-items:center;margin-top: 4px;">
+                    <p>Audio File Length: {{ audio_info.length }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    
+    <div id="fileform" style="display:flex;justify-content:center;align-items:center;margin-top: 10px;">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="audio"><strong>Upload Audio: </strong></label>
+            <input type="file" name="audio" accept="audio/*"><br><br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <div style="display:flex;justify-content:center;align-items:center;margin-top: 100px;">
+        {% if status and status == "Success" %}
+        <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;max-width: 50%;">
+            <h1>Result Here</h1>
+        </div>
+        {% endif %}
+    </div>
+    
+
+</body>
+</html>
