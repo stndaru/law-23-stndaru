@@ -9,6 +9,9 @@ psycopg2-binary = "*"
 load-dotenv = "*"
 requests = "*"
 mutagen = "*"
+pika = "*"
+install = "*"
+openai-whisper = "*"
 
 [dev-packages]
 

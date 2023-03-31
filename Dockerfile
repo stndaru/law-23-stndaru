@@ -8,6 +8,8 @@ RUN pip3 install pipenv
 RUN pip install requests
 RUN pip3 install requests
 CMD ["pip","install","requests"]
+CMD ["sudo", "apt", "update"]
+CMD ["sudo", "apt", "install", "ffmpeg"]
 RUN pipenv install
 COPY . /app 
 ENTRYPOINT ["pipenv"] 

@@ -10,7 +10,7 @@ services:
   web:
     build: .
     command: >
-      run sh -c "pip install requests && pip install mutagen && python manage.py migrate &&
+      run sh -c "pip install requests && pip install mutagen && pip install pika && python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app

@@ -14,5 +14,7 @@ urlpatterns = [
     path('identify-track/json', views.identifyTrackUploadJSON, name='base'),
 
     path('search-name/json/<name>', views.getTrackDetailsJSON, name='base'),
-    path('random/json', views.randomSongJSON)
+    path('random/json', views.randomSongJSON),
+
+    path('transcribe-text', views.transcribeText)
 ]

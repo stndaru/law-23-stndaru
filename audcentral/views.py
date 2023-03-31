@@ -5,6 +5,7 @@ from io import BytesIO
 from django.views.decorators.csrf import csrf_exempt
 from .acfunctions.FetchTrack import *
 from .acfunctions.RandomSong import *
+from .acfunctions.TranscribeText import *
 import json, requests, mutagen, random, time, pika
 
 LASTFM_TOKEN = "14e1db88026c7814d4ed01afac4f1e6b"
@@ -142,5 +143,5 @@ def randomSongJSON(request):
     return HttpResponse(result, content_type="application/json")
 
 def transcribeText(request):
-    
+
     return HttpResponseBadRequest()
