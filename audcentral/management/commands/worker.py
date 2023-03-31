@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from .acFunctions import *
+from ...acfunctions.RandomSong import *
 import pika, os, sys
 
 class Command(BaseCommand):
@@ -11,7 +11,7 @@ class Command(BaseCommand):
             channel.queue_declare(queue='test0')
 
             def callback(ch, method, properties, body):
-                print(randomSongJSON())
+                print(randomSongJSONFunction())
 
             channel.basic_consume(queue='test0', on_message_callback=callback, auto_ack=True)
 

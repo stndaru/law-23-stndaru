@@ -5,7 +5,7 @@ LASTFM_TOKEN = "14e1db88026c7814d4ed01afac4f1e6b"
 AUD_TOKEN = "52d936452cec3fa3b2127034a38febc6" # Expire 24 March 2023, Max 300 Requests
 GENIUS_TOKEN = "8DnZUqI2sO53dmGaKQ-QdB7efIsIG10xKZGCOEqbDuuveLyRgYayIzblR5aUlQL0"
 
-def randomSongJSON():
+def randomSongJSONFunction():
     song_id = random.randint(1,10000000)
     genius_data = "None"
     chosen_song_lastFM = "None"
