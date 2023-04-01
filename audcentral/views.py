@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
-from .models import Document, TranscriptResult
+from .models import Document, TranscriptResult, TemporaryAudio
 from io import BytesIO
 from django.views.decorators.csrf import csrf_exempt
 from .acfunctions.FetchTrack import *
@@ -156,7 +156,31 @@ def transcribeText(request):
 
             audio_info = mutagen.File(audio).info
             transcribed_audio_obj = TranscriptResult.objects.create(status="In Progress")
-            context = transcribeTextData(audio, audio_info, transcribed_audio_obj)
+            storage_obj = TemporaryAudio.objects.create(audio = audio)
+
+            rmq_data = {
+                "task" : "transcribe",
+                "audio_info" : audio_info.length,
+                "obj_id" : transcribed_audio_obj.id,
+                "storage_id" : storage_obj.id
+            }
+
+            connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host='localhost'))
+            channel = connection.channel()
+
+            channel.queue_declare(queue='transcribe0')
+
+            channel.basic_publish(exchange='', routing_key='transcribe0', body=json.dumps(rmq_data))
+            print(" [x] Sent call")
+            connection.close()
+
+            # context = transcribeTextData(audio, audio_info, transcribed_audio_obj, None, None)
+            context = {
+                "status" : "In Progress",
+                "status_description" : "Transcription is in progress...",
+                "id" : transcribed_audio_obj.id
+            }
 
             return render(request, "transcribeText.html", context)
 
@@ -166,7 +190,7 @@ def transcribeText(request):
 
         context = {
             "status" : status,
-            "audio_info" : audio_info,
+            "audio_info" : audio_info.length,
             "status_description" : status_description,
         }
 

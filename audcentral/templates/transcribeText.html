@@ -42,6 +42,17 @@
     </div>
 
     <div style="display:flex;justify-content:center;align-items:center;margin-top: 100px;">
+        {% if status and status == "In Progress" %}
+        <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;max-width: 50%;">
+            <h1>Result Here</h1>
+            {% if id %}
+                <p>Your Process ID is: {{ id }}</p>
+                <p>Please use this ID to access your data at URL/transcribe-text/id</p>
+                <p>Please note also to store this ID immediately as you will no longer able to access it again</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
         {% if status and status == "Success" %}
         <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;max-width: 50%;">
             <h1>Result Here</h1>

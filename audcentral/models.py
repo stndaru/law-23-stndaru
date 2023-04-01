@@ -11,3 +11,6 @@ class TranscriptResult(models.Model):
     transcribe_result = models.TextField(default="None")
     translate_result = models.TextField(default="None")
     sentiment_result = models.CharField(max_length=500, default="None")
+
+class TemporaryAudio(models.Model):
+    audio = models.FileField(upload_to='audio/')

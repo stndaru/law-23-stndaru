@@ -7,6 +7,8 @@ import time
 import mutagen
 import text2emotion as te
 
+from ..models import TranscriptResult, TemporaryAudio
+
 # connection = pika.BlockingConnection(
 #     pika.ConnectionParameters(host='localhost'))
 # channel = connection.channel()
@@ -70,16 +72,22 @@ def transcribe_main(audio_file, transcribed_audio_obj):
     transcribed_audio_obj.audio_info = audio_info.length
     transcribed_audio_obj.save()
 
+    print("Done Transcribing Data...")
+
     return result
 
 # Evaluate the INT8 BERT model after the dynamic quantization
-def transcribeTextData(audio, audio_info, transcribed_audio_obj, audio_path = None):
-    if not audio_path:
-        audio_file = audio.temporary_file_path()
-    else:
-        audio_file = audio_path
+def transcribeTextData(audio, audio_info, transcribed_audio_obj, obj_id, audio_id):
 
     try:
+        if audio:
+            audio_file = audio.temporary_file_path()
+        else:
+            audio_file = TemporaryAudio.objects.get(pk=audio_id).audio.path
+
+        if not transcribed_audio_obj:
+            transcribed_audio_obj = TranscriptResult.objects.get(pk=obj_id)
+
         result_all = transcribe_main(audio_file, transcribed_audio_obj)
 
         transcribe_result = result_all[0]
@@ -97,10 +105,20 @@ def transcribeTextData(audio, audio_info, transcribed_audio_obj, audio_path = No
                     "id": transcribed_audio_obj.id
                 }
 
+        audio_data_obj = TemporaryAudio.objects.get(pk=audio_id)
+        audio_data_obj.audio.delete()
+        audio_data_obj.delete()
+
         return context
 
     except Exception as e:
-        print(e)
+        print(f"Error: {e}")
+        audio_data_obj = TemporaryAudio.objects.get(pk=audio_id)
+        audio_data_obj.audio.delete()
+        audio_data_obj.delete()
+
+        transcribed_audio_obj = TranscriptResult.objects.get(pk=obj_id)
+
         transcribed_audio_obj.status = "Error"
         transcribed_audio_obj.save()
 

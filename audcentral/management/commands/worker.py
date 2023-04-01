@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from ...acfunctions.RandomSong import *
+from ...acfunctions.TranscribeText import *
 import pika, os, sys
 
 class Command(BaseCommand):
@@ -8,12 +9,21 @@ class Command(BaseCommand):
             connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
             channel = connection.channel()
 
-            channel.queue_declare(queue='test0')
+            channel.queue_declare(queue='transcribe0')
 
             def callback(ch, method, properties, body):
-                print(randomSongJSONFunction())
+                message = json.loads(body)
+                if message["task"] == "transcribe":
+                    try:
+                        print("Start transcribing data...")
+                        context = transcribeTextData(None, message["audio_info"], None, message["obj_id"], message["storage_id"])
+                    except:
+                        transcribed_audio_obj = TranscriptResult.objects.get(pk=message["obj_id"])
+                        transcribed_audio_obj.status = "Error"
+                        transcribed_audio_obj.status_description = "Error processing the file"
+                        transcribed_audio_obj.save()
 
-            channel.basic_consume(queue='test0', on_message_callback=callback, auto_ack=True)
+            channel.basic_consume(queue='transcribe0', on_message_callback=callback, auto_ack=True)
 
             print(' [*] Waiting for messages. To exit press CTRL+C')
             channel.start_consuming()
