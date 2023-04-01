@@ -10,8 +10,8 @@ services:
   web:
     build: .
     command: >
-      run sh -c "pip install requests && pip install mutagen && pip install pika && python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+          run sh -c "pip install requests && pip install mutagen && pip install pika &&
+            python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
@@ -23,5 +23,24 @@ services:
     depends_on:
       - db
 
+  # rabbitmq:
+  #   image: rabbitmq:3.11-management
+  #   hostname: rabbitmq
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq/
+  #     - rabbitmq_log:/var/log/rabbitmq/
+  #   networks:
+  #     - rabbitmq_net
+        
+networks:
+  rabbitmq_net:
+    name: rmqnet
+    external: true
+
 volumes:
   law_django_data:
+  rabbitmq_data:
+  rabbitmq_log:

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Central - Track Identification</title>
+    <title>Audio Central - Text Transcription</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
 </head>
 <body>
@@ -45,6 +45,15 @@
         {% if status and status == "Success" %}
         <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;max-width: 50%;">
             <h1>Result Here</h1>
+            {% if id %}
+                <p>{{ id }}</p>
+            {% endif %}
+            {% if sentiment_result %}
+                <p>{{ sentiment_result }}</p>
+            {% endif %}
+            {% if transcribe_result %}
+                <p>{{ transcribe_result }}</p>
+            {% endif %}
         </div>
         {% endif %}
     </div>

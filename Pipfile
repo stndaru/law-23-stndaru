@@ -12,6 +12,8 @@ mutagen = "*"
 pika = "*"
 install = "*"
 openai-whisper = "*"
+text2emotion = "*"
+emoji = "==1.7.0"
 
 [dev-packages]
 

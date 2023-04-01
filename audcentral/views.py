@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
-from .models import Document
+from .models import Document, TranscriptResult
 from io import BytesIO
 from django.views.decorators.csrf import csrf_exempt
 from .acfunctions.FetchTrack import *
@@ -143,5 +143,53 @@ def randomSongJSON(request):
     return HttpResponse(result, content_type="application/json")
 
 def transcribeText(request):
+    status = "Error"
+    audio_info = "None"
+    status_description = "Unknown error, please try again"
+    transcribe_result = "None"
 
-    return HttpResponseBadRequest()
+    if request.method=="POST":
+    
+        # try:
+        if request.FILES["audio"]:
+            audio = request.FILES["audio"]
+
+            audio_info = mutagen.File(audio).info
+            transcribed_audio_obj = TranscriptResult.objects.create(status="In Progress")
+            context = transcribeTextData(audio, audio_info, transcribed_audio_obj)
+
+            return render(request, "transcribeText.html", context)
+
+        # except Exception as e:
+        #     status_description = f"We've discovered an error while processing your file. Make sure you've uploaded a correct non-corrupt file:\n {e}"
+
+
+        context = {
+            "status" : status,
+            "audio_info" : audio_info,
+            "status_description" : status_description,
+        }
+
+        return render(request, "transcribeText.html", context)
+    
+    return render(request, "transcribeText.html")
+
+def transcribeTextView(request,id):
+    data = get_object_or_404(TranscriptResult, pk=id)
+    if data.status == "In Progress":
+        context = {
+            "id" : data.id,
+            "status":"In Progress",
+            "status_description" : "Text is still being transcribed",
+        }
+    else:
+        context = {
+            "id" : data.id,
+            "status":"Success",
+            "audio_info" : str(data.audio_info),
+            "status_description" : "Successfully transcribed",
+            "transcribe_result" : data.transcribe_result,
+            "sentiment_result" : data.sentiment_result,
+        }
+        
+    return HttpResponse(json.dumps(context), content_type="application/json")

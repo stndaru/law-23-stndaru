@@ -6,6 +6,8 @@ class Document(models.Model):
     file = models.FileField()
 
 class TranscriptResult(models.Model):
-    transcribe_result = models.TextField()
-    translate_result = models.TextField()
-    sentiment_result = models.CharField(max_length=500)
+    status = models.CharField(max_length=50, default="None")
+    audio_info = models.DecimalField(max_digits=24, decimal_places=3, default=0)
+    transcribe_result = models.TextField(default="None")
+    translate_result = models.TextField(default="None")
+    sentiment_result = models.CharField(max_length=500, default="None")
