@@ -1,9 +1,44 @@
 # Audio Central v1
 #### Layanan Aplikasi & Web Project by Stefanus Ndaru W - 2006526812
+    
 
+# Assignment 02 Section
 ## App Explanation
 ### Overview
-Audio central is a web service oriented around audio, but mainly music. Here you can do multiple actions regarding music searching that are based mainly on two popular music information platform: Last.FM and Genius. Currently, you can 
+Audio Central, the web service that's oriented around audio, but mainly music, has just gotten a new update! Now Audio Central supports audio transcription, which enables you to upload an audio and transcribe it to text format alongside with sentiment analysis. The audio transcription process utilizes Open AI Whisper Text Transcription Model, enabling you to transcribe text as accurate as possible using today's technology and limitation. 
+
+> In summary, with this new addition, you can:    
+Upload an audio file and receive Text Transcription and Text Sentiment Analysis based on 5 moods: Happy, Angry, Surprise, Sad and Fear    
+     
+### Background
+This idea came from an inspiration where processing audio can be tedious, especially if you want to analyze it. Now, Open AI has released it's Whisper model, and I am able to import and run the model in GCP. With this, you can convert audio to text, and with text format, you can run a lot of things such as document to word to make it searchable, analyze it, translate it, and more. But, because of time limitation, I can only implement transcription and sentiment analysis only for now.
+
+---
+## List of Features
+
+---
+## Application/Web Service Development Difficulties & Complexity
+Eventhough the web service seems simple, there are a lot of difficulties that I had to face:    
+1. Running Whisper Model from Open AI on GCP
+2. Running RabbitMQ in GCP alongside Django
+3. Running Sentiment Analysis
+4. Creating Asynchronous Service
+5. Creating Temporary File Solution
+6. [Failed] Running Service Using Docker
+
+## Application/Web Service Usability/Urgency
+This website can have multiple functionalities based on the available features, which are:   
+1. Lorem
+
+## Application/Web Service Uniqueness
+Lorem
+
+---
+
+# Assignment 01 Section
+## App Explanation
+### Overview
+Audio Central is a web service oriented around audio, but mainly music. Here you can do multiple actions regarding music searching that are based mainly on two popular music information platform: Last.FM and Genius. Currently, you can 
 1. Recognize a song based on uploaded audio file
 2. Select a random song
 3. Search top tracks based on region 
