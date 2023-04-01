@@ -9,15 +9,6 @@ import text2emotion as te
 
 from ..models import TranscriptResult, TemporaryAudio
 
-# connection = pika.BlockingConnection(
-#     pika.ConnectionParameters(host='localhost'))
-# channel = connection.channel()
-
-# channel.queue_declare(queue='test0')
-
-# channel.basic_publish(exchange='', routing_key='test0', body='Hello World!')
-# print(" [x] Sent call")
-# connection.close()
 
 def print_size_of_model(model):
     torch.save(model.state_dict(), "temp.p")
@@ -129,26 +120,3 @@ def transcribeTextData(audio, audio_info, transcribed_audio_obj, obj_id, audio_i
                     "transcribe_result" : "None",
                 }
         return context
-
-
-# def transcribeTextData(audio, audio_info):
-#     audio_file = audio
-
-#     connection = pika.BlockingConnection(
-#     pika.ConnectionParameters(host='localhost'))
-#     channel = connection.channel()
-
-#     channel.queue_declare(queue='test0')
-
-#     channel.basic_publish(exchange='', routing_key='test0', body='Hello World!')
-#     print(" [x] Sent call")
-#     connection.close()
-
-#     context = {
-#                 "status" : "Success",
-#                 "audio_info" : audio_info,
-#                 "status_description" : "None",
-#                 "transcribe_result" : "None",
-#             }
-
-#     return context
