@@ -198,6 +198,64 @@ def transcribeText(request):
     
     return render(request, "transcribeText.html")
 
+@csrf_exempt
+def transcribeTextJSON(request):
+    status = "Error"
+    audio_info = "None"
+    status_description = "Unknown error, please try again"
+    transcribe_result = "None"
+
+    try:
+        if request.method=="POST":
+        
+            try:
+                if request.FILES["audio"]:
+                    audio = request.FILES["audio"]
+
+                    audio_info = mutagen.File(audio).info
+                    transcribed_audio_obj = TranscriptResult.objects.create(status="In Progress")
+                    storage_obj = TemporaryAudio.objects.create(audio = audio)
+
+                    rmq_data = {
+                        "task" : "transcribe",
+                        "audio_info" : audio_info.length,
+                        "obj_id" : transcribed_audio_obj.id,
+                        "storage_id" : storage_obj.id
+                    }
+
+                    connection = pika.BlockingConnection(
+                        pika.ConnectionParameters(host='localhost'))
+                    channel = connection.channel()
+
+                    channel.queue_declare(queue='transcribe0')
+
+                    channel.basic_publish(exchange='', routing_key='transcribe0', body=json.dumps(rmq_data))
+                    print(f" [x] Sent call for transcribe object ID {storage_obj.id}")
+                    connection.close()
+
+                    # context = transcribeTextData(audio, audio_info, transcribed_audio_obj, None, None)
+                    context = {
+                        "status" : "In Progress",
+                        "status_description" : "Transcription is in progress...",
+                        "id" : transcribed_audio_obj.id
+                    }
+
+                    return HttpResponse(json.dumps(context), content_type="application/json")
+
+            except Exception as e:
+                status_description = f"We've discovered an error while processing your file. Make sure you've uploaded a correct non-corrupt file:\n {e}"
+
+            context = {
+                "status" : status,
+                "audio_info" : "Error",
+                "status_description" : status_description,
+            }
+        
+            return HttpResponse(json.dumps(context), content_type="application/json")
+    
+    except:
+        return HttpResponseBadRequest("Please use POST with attached file to analyze and receive JSON result")
+
 def transcribeTextView(request,id):
     data = get_object_or_404(TranscriptResult, pk=id)
     if data.status == "In Progress":

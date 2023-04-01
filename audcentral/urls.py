@@ -17,5 +17,6 @@ urlpatterns = [
     path('random/json', views.randomSongJSON),
 
     path('transcribe-text', views.transcribeText),
+    path('transcribe-text/json', views.transcribeTextJSON),
     path('transcribe-text/<id>', views.transcribeTextView)
 ]
