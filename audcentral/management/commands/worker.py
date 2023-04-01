@@ -15,7 +15,8 @@ class Command(BaseCommand):
                 message = json.loads(body)
                 if message["task"] == "transcribe":
                     try:
-                        print("Start transcribing data...")
+                        ID = str(message["obj_id"])
+                        print(f"Start transcribing data for ID {ID}...")
                         context = transcribeTextData(None, message["audio_info"], None, message["obj_id"], message["storage_id"])
                     except:
                         transcribed_audio_obj = TranscriptResult.objects.get(pk=message["obj_id"])

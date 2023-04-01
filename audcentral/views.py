@@ -172,7 +172,7 @@ def transcribeText(request):
                 channel.queue_declare(queue='transcribe0')
 
                 channel.basic_publish(exchange='', routing_key='transcribe0', body=json.dumps(rmq_data))
-                print(" [x] Sent call")
+                print(f" [x] Sent call for transcribe object ID {storage_obj.id}")
                 connection.close()
 
                 # context = transcribeTextData(audio, audio_info, transcribed_audio_obj, None, None)
@@ -190,7 +190,7 @@ def transcribeText(request):
 
         context = {
             "status" : status,
-            "audio_info" : audio_info.length,
+            "audio_info" : "Error",
             "status_description" : status_description,
         }
 

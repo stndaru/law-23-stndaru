@@ -63,7 +63,9 @@ def transcribe_main(audio_file, transcribed_audio_obj):
     transcribed_audio_obj.audio_info = audio_info.length
     transcribed_audio_obj.save()
 
-    print("Done Transcribing Data...")
+    ID = transcribed_audio_obj.id
+
+    print(f"Done Transcribing Data for ID {ID}...")
 
     return result
 
