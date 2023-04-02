@@ -1,4 +1,4 @@
-# Audio Central v1
+# Audio Central v2
 #### Layanan Aplikasi & Web Project by Stefanus Ndaru W - 2006526812
     
 
@@ -13,278 +13,125 @@ Upload an audio file and receive Text Transcription and Text Sentiment Analysis 
 ### Background
 This idea came from an inspiration where processing audio can be tedious, especially if you want to analyze it. Now, Open AI has released it's Whisper model, and I am able to import and run the model in GCP. With this, you can convert audio to text, and with text format, you can run a lot of things such as document to word to make it searchable, analyze it, translate it, and more. But, because of time limitation, I can only implement transcription and sentiment analysis only for now.
 
+### How it Works
+**Transcription Process**    
+The transcription process works by using Open AI Whisper Model (see: https://github.com/openai/whisper). The model is imported into the GCP VM Instance and run to transcribe it using Python. The model receives an audio file and returns the detected language with the resulting transcription. The text then is also analyzed by Text2Emotion and detect the sentiment/mood of the text. This is then combined with the transcription to provide the text transcription and sentiment analysis result.
+
+**Web Service Process**   
+In concept, the Text Transcription Web Service runs asynchronously using Rabbit MQ to queue messages to available workers in order to process and do the transcription service. The system architecture looks similar to below:    
+
+![Transrciption-Overview](./media/tm2-overview.png)
+    
+The client - the user using web browser or service - will connect with the web service (Django), while the web service will queue process through Rabbit MQ. Rabbit MQ then will queue the request and send it to available workers. The workers then process it and store it to the database where the result could be fetched in later time.    
+
+To further provide detail, below is the process for requesting a text transcription process:   
+
+![Transrciption-Process](./media/tm2-process-system.png)
+    
+The process request is as follows:
+1. Client requests to web service by providing an audio file
+2. Web service creates an object to store the audio file temporarily and another object to store the result which could be accessed later on
+3. Database returned the objects to the web service
+4. Web service informs the user that the transcription is in progress, providing the ID which the user can use to retrieve the result once its done. At the same time, the web service queues the request to RabbitMQ, where RabbitMQ then queued the request
+5. Once there is an available worker, RabbitMQ then sends the request to the available worker to process
+6. The worker then access the database using the temporary object ID and retrieve the audio file, and also the reference for the object to store result to be used later on
+7. The database then provides the audio file and the result object to store the result in
+8. The worker then uses Open AI Whisper Model and Text2Emotion to transcribe the text and determine the text's sentiment. Once finished, the worker then store the result to the result object, and store it to the database. The worker also informs database that process is complete and the audio file is no longer needed, thus the database will delete the temporary audio file to save storage.
+
+Other Notes:   
+1. The workers are made using Django's Management/Command system, enabling it to run in paralel with the web service while still able to access the database
+2. The functions and workers alongside the message queuing with RabbitMQ are made to be modular so its easy to extend in the future
+3. After step 4, where client has received the ID, the client/user can always access it using the ID to check the progress or receive the result once finished
+4. Process 4 and 5 in RabbitMQ currently uses the default direct queue with round-robin principle, but can easily be modified and improved to use acknowledgement
+5. The result can only be viewed in JSON format, while uploading can be through `curl` or `webview`
+
 ---
 ## List of Features
 
----
-## Application/Web Service Development Difficulties & Complexity
-Eventhough the web service seems simple, there are a lot of difficulties that I had to face:    
-1. Running Whisper Model from Open AI on GCP
-2. Running RabbitMQ in GCP alongside Django
-3. Running Sentiment Analysis
-4. Creating Asynchronous Service
-5. Creating Temporary File Solution
-6. [Failed] Running Service Using Docker
+### [Flagship Feature] Text Transcription with Sentiment Analysis
+Transcribes an audio to text from an uploaded audio file and analyze the text's mood based on 5 category: Happy, Angry, Surprise, Sad and Fear   
+> Note that the transcription result are publicly available and can be accessed by anyone, therefore it is encouraged that you do NOT use this service to transcribe classified or publicly unavailable audio file    
 
-## Application/Web Service Usability/Urgency
-This website can have multiple functionalities based on the available features, which are:   
-1. Lorem
-
-## Application/Web Service Uniqueness
-Lorem
-
----
-
-# Assignment 01 Section
-## App Explanation
-### Overview
-Audio Central is a web service oriented around audio, but mainly music. Here you can do multiple actions regarding music searching that are based mainly on two popular music information platform: Last.FM and Genius. Currently, you can 
-1. Recognize a song based on uploaded audio file
-2. Select a random song
-3. Search top tracks based on region 
-4. Search a song by title
-
-### Background
-This project was originated by my passion for music listening, and not through the idea from the assignment's details because I just realized it was mentioned there in the last day. Originally, I wanted to do a fully centralized audio including Text-Transcription using OpenAI Whisper, but sadly it was too costly to run GPU, a necessary component, in GCP (it costs up to $3000/month). So I set back that idea and decide to make a song recognizer that could integrate result with Genius and Last.FM, 2 big platform for looking up song details
-
----
-## List of Functions
-
-
-### [Flagship Feature] Song Recognizer
-Recognize a song based on an audio uploaded with constraints of maximum 2MB size and 20 second duration, and fetched the song's details from Genius and Last.FM, if they exist   
 
 **Parameter List**
 ```
-mp3 file of target song with max duration of 20 second and max size of 2MB
+mp3 file of a valid audio file
 ```
 **Curl Call Example**
 ```
-curl http://127.0.0.1:8000/identify-track/json -i -F csrfmiddlewaretoken=<csrf-token> -F audio=@<path/to/file>;type=audio/mpeg
+curl http://34.77.133.235:8000/transcribe-text/json -i -F csrfmiddlewaretoken=<csrf-token> -F audio=@<path/to/file>;type=audio/mpeg
 ```
 **Result Example**
 
->genius_data = data result from Genius platform   
->genius_data_detailed = data result from Genius track specific detail     
->lastFM_data = data result from Last.FM search    
->lastFM_data_detailed = data result from Last.FM track specific detail   
+You can obtain the result by accessing `http://<link>/transcribe-text/<id>` where `<link>` is the URL where you can host the service. The result will always be in JSON format for now.   
+
+> id = your unique id to access the transcription result  
+> status = the status for the transcription process    
+> audio_info = the length of the audio file in seconds   
+> status_description = the detailed status for the transcription process   
+> transcribe_result = the transcription result     
+> sentiment_result = the sentiment analysis of the transcribed text
 
 You might receive errors when uploading, which can be viewed on the corresponding error message through `status_description`.    
 
-For further details, you can view the API guide for Genius (https://docs.genius.com/) and Last.FM (https://www.last.fm/api)
-
-
 ```json
 {
-    "status" : "<request_status>",
-    "audio_info" : "<track_length>",
-    "status_description" : "<status_description>",
-    "song_title" : "<song_title>",
-    "artist" : "<artist_name>",
-    "analyze_result" : {"..."},
-    "genius_data" : {"..."},
-    "genius_data_detailed" : {"..."},
-    "lastFM_data" : {"..."},
-    "lastFM_data_detailed" : {"..."},
+    "id": 17, 
+    "status": "Success", 
+    "audio_info": "8.619", 
+    "status_description": "Successfully transcribed", "transcribe_result": " I'm out of pain, but I'm trying to go home All of my chains are spanned", 
+    "sentiment_result": "{'Happy': 0.0, 'Angry': 0.0, 'Surprise': 0.0, 'Sad': 1.0, 'Fear': 0.0}"
 }
-
 ```
 **Web View URL**
 ```
-<link>/identify-track
+<link>/transcribe-text
 ```
 **Screenshot Example**    
 Web View    
-![Identifier-Web-View](./media/identifier-1.png)
+![Transcription-Web-View](./media/tm2-transcription.png)
 JSON View 
-![Identifier-JSON-View](./media/identifier-2.png)   
+![Transcription-JSON-View](./media/tm2-transcription-json.png) 
 
-### [Flagship Feature] Song Randomizer
-Select a random song that exist in Genius's library and returns the detailing data of the song from Genius and Last.FM (if exist)    
-
-**Parameter List**
-```
-none
-```
-**Curl Call Example**
-```
-curl http://127.0.0.1:8000/random/json
-```
-**JSON Result**
-
->genius_data = data result from Genius platform    
->lastFM_data = data result from Last.FM search    
->lastFM_data_detailed = data result from Last.FM track specific detail
-
-```json
-{
-    "genius_data" : {
-        "meta": {"..."},
-        "response": {"..."}
-    },
-    "lastFM_data" : {
-        "name" : "<song_name>",
-        "artist" : "<artist_name>",
-        "url" : "<song_lastfm_url>",
-        "streamable" : "<song_streamable>",
-        "listeners" : "<song_listeners>",
-        "image" : {"..."},
-        "mbid" : "<song_mbid>",
-    },
-    "lastFM_data_detailed" : {
-        "track" : {
-            "name" : "<song_name>",
-            "url" : "<song_lastfm_url>",
-            "duration" : "<song_duration>",
-            "streamable" : {"..."},
-            "listeners" : "<song_listeners>",
-            "playcount" : "<song_playcount>",
-            "artist" : {"..."},
-            "toptags" : {"..."},       
-        }
-    }
-}
-
-```
-**Web View URL**
-```
-<link>/random/json
-```
-Occasionally, this feature call will result in a `error` result which was caused by the random nature of the randomizer and the inconsistency of Genius library. Solving this can be done by retrying the call again.
-
-**Screenshot Example**    
-JSON View 
-![Identifier-JSON-View](./media/random-s1.png) 
-
-
-### Top Tracks by Region
-Find top tracks that are currently being played based on country with data obtained from Last.FM   
-
-**Parameter List**
-```
-ISO 3166 country code
-```
-**Curl Call Example**
-```
-http://127.0.0.1:8000/top-tracks-region/<region>
-```
-**Result Example**
-```json
-{
-    "country": "country",
-    "track": {
-        "0" : {
-            "name" : "<song_name>",
-            "duration": "<song_duration>",
-            "listeners" : "<song_listeners>",
-            "mbid" : "<song_mbid>",
-            "url" : "<song_lastfm_url>",
-            "streamable" : {"..."},
-            "artist" : {"..."},
-            "image" : {"..."},
-            "@attr" : "<song_attribute>",
-        },
-        "1" : {
-            "..."
-        }, "..."
-    }
-}
-```
-**Web View URL**
-```
-<link>/top-tracks-region/<country>
-```
-**Screenshot Example**    
-Web View 
-![Identifier-JSON-View](./media/toptrack-s1.png) 
-JSON View     
-![Identifier-JSON-View](./media/toptrack-s2.png) 
-
-### Search Song based on Name
-Search a song based on name and fetch result from Genius library, and fetch several songs with similar title to the inputted name    
-
-**Parameter List**
-```
-valid song name
-```
-**Curl Call Example**
-```
-http://127.0.0.1:8000/search-name/json/<song-name>
-```
-**Result Example**
-```json
-{
-    "meta": {
-        "status" : "<service-call-status-response>",
-    },
-    "response" : {
-        "hits" : {
-            "0": {"..."},
-            "1": {"..."},
-            "..."
-        }
-    }
-}
-```
-**Web View URL**
-```
-<link>/search-name/json/<song-name>
-```
-**Screenshot Example**    
-JSON View 
-![Identifier-JSON-View](./media/search-s1.png) 
-
+---
 ## Application/Web Service Development Difficulties & Complexity
 Eventhough the web service seems simple, there are a lot of difficulties that I had to face:    
-1. File Upload via Form and Curl    
-Originally I had no experience of using Django file upload system. I had to look up a blog on how to use it and how to access the file. From the web browser view, its simple just to use forms, but using `curl`, it was very difficult and I had to look up multiple Stack Overflow page and Curl Manpage just to get it working.
-2. API Management (Fetching & Error Handling)    
-The service I made is a combination of multiple other services, and having to manage accessing each of them is proven to be difficult. There are multiple edge cases and possibility for the API to broke, so I had to mitigate a lot of them through `try-except` clause by Python
-3. API Merging & Requests   
-As mentioned before, this service combines multiple other services, and having to pass different parameters between each one is very hard as one service could return something that's different from the other. Take for example the code below. Here, I had to parse the data obtained from Genius to Last.FM, and this require me to read the documentation, figure out the return key, and pass it onwards to the Last FM request   
-
-```python
-while genius_data['meta']['status'] == 404:
-    song_id = random.randint(1,10000000)
-    genius_request = "https://api.genius.com/songs/" + str(song_id)
-    genius = requests.get(genius_request, headers={'Authorization': 'Bearer ' + GENIUS_TOKEN})
-    genius_data = json.loads(genius.text)
-    time.sleep(2)
-
-song_title = genius_data["response"]["song"]["title"]
-
-lastFM = requests.get(f"http://ws.audioscrobbler.com/2.0/?method=track.search&track={song_title}&api_key={LASTFM_TOKEN}&format=json")
-lastFM_data = json.loads(lastFM.text)
-
-if len(lastFM_data['results']['trackmatches']['track']) > 0:
-    chosen_song_lastFM = lastFM_data['results']['trackmatches']['track'][0]
-
-    LFM_song_title = chosen_song_lastFM['name']
-    LFM_song_artist = chosen_song_lastFM['artist']
-
-    lastFM_detailed_song = requests.get(f"http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key={LASTFM_TOKEN}&artist={LFM_song_artist}&track={LFM_song_title}&format=json")
-    lastFM_data_detailed = json.loads(lastFM_detailed_song.text)
-```  
-4. Hardware Limitation   
-As mentioned in the background, I had to drop one of my idea which is the Whisper Text Transcription because of lack in funding for GCP machine
-5. Front-End and Back-End    
-On top the service where I had to respond with a JSON response, I also made a simple but effective front-end. Albeit its not as fancy as the tailwind and bootstrapped UI, the logic in passing the data was difficult and taken up all the time I had plan to beautify the looks
+1. **Running Whisper Model from Open AI on GCP**    
+As mentioned above, Whisper is a text-transcription model made by Open AI. As an AI model that could transcribe audio, it was originally designed to use CUDA-based graphic card, which was not present on GCP. On top of it, it also required a lot of old libraries such as `ffmpeg`. Trying to run Whisper and installing the library was tedious and I ran across multiple error. In the end, I managed to run everything well after following a lot of tutorial, and along the way found a method to run the model on CPU without a too big of a performance issue using https://github.com/MiscellaneousStuff/openai-whisper-cpu
+2. **Running RabbitMQ in GCP alongside Django**    
+RabbitMQ in itself is quite simple, but it gets really tricky when pairing it with frameworks such as Django. I had issue on running RabbitMQ on Django while maintaining access to the database file, where I kept getting AMQP Error on top of `unable to find module "pika"`. I had a lot of debugging and configuration on the GCP but managed to solve it after refactoring the file system to be modular.
+3. **Running Sentiment Analysis**   
+Compared to other, this issue is quite minor but frustrating, where the library I used to do text analysis, Text2Emotion, was outdated and running an old Emoji library, so I had to downgrade it for it to work
+4. **Creating Asynchronous Service**   
+By far this is one of the most challenging part, where I had to run an external worker that could still connect to RabbitMQ and the Django Database (because we know that python script outside of the Django file will not be able to access it). I had to do a lot of digging, and finally found the solution using Django Admin Command (https://docs.djangoproject.com/en/4.1/howto/custom-management-commands/). This was really new to me and it was really interesting and became a valuable learning point where I could run a python script inside the Django framework separated from the web service. Using this, I could run a separate worker connected to RabbitMQ while still able to access the database to store the result and achieve asynchronous service with the help of `tmux` to run the webservice and workers in parallel.
+5. **Creating Temporary File Solution**   
+One issue I faced was that the temporary file using `request.FILES` was too short-lived and was deleted before the worker could process the file. So I had to find ideas, and decided to use a temporary object/models where the audio would be stored, and then deleted once it was done processed.
+6. **Creating the System to be Modular in Nature**   
+This was minor but frustrating, because I had to do a major refactor in separating functions and processes so code is much more readable and modular. I learned how to use Python's importing system much more thoroughly and implemented what I had learned on Advanced Programming Course.
+7. **[Failed] Running Service Using Docker**  
+This was by far the hardest one, harder than point 4 but I decided not to mention as the hardest because technically I failed. Originally, the service used docker, but I can't get it to work with RabbitMQ despite the amount of things I tried, from running RabbitMQ in the same container, creating new docker network, and running RabbitMQ in a separated container. But I kept getting 2 issues: whisper couldn't be loaded into the docker container, and RabbitMQ just wouldn't connect and kept throwing `AMQP Connection Error`. ![AMQP](./media/tm2-error.png)    
+With the deadline fast approaching, I decided to ditch this for now and let this be something for the future me to fix.
 
 ## Application/Web Service Usability/Urgency
 This website can have multiple functionalities based on the available features, which are:   
-1. Find an unknown song title and details from an audio   
-Have you ever had a moment where you have a song file, but doesn't know what the title is and wanted to know? Now you can easily do that with this service. On top of that, you'll also get the associated details from Genius and Last FM
-2. Search for song you want to find the details of via JSON response easily    
-Searching for song can be tedious especially if you want it to be integrated to your system. With this service, it can be as easy as providing a song title, and we'll fetch the Genius and Last FM details for you
-3. Search for a random song   
-Are you bored with your current song? Want to find something new? Well with this service, we can provide you with a random song, completely random and without any boundaries. Best of all, you'll get the complete details about the song from Genius and Last FM with it
-4. Search for top tracks in a country   
-Want to know what people in your region are listening? Look no further. With this service, you can get a list of top songs being played in your area so you can keep up to date with what people around you are listening
+1. Text Transcription
+You can receive the text transcription from an uploaded audio file with high accuracy using Open AI's Whisper Model. This can be very useful for obtaining the text from a meeting, saving time for people without having to manually take note what the person is saying. One important use case is lecture notes, where you just need to record the audio, and you can get the full audio transcript as a note from the lecturer with ease.
+2. Sentiment Analysis    
+With the transcribed text, you will be able to receive the sentiment analysis which could determine the mood of the submitted audio. This can be useful for when you've recorded a conversation, speech, or any kind of person talking and wanted to know the overall mood of the topic the person is conveying based on the selected words they chose to speak.
+3. [Future Implementation] Text Translations, Text-to-Audio, Text-to-TranslatedAudio Modular Function, and More   
+Due to time constraint, the other uses are currently not developed but can easily be integrated such as text translation or text to audio, the possibilities are endless as long as it works with text files with this modular service where you just need to modify the worker and specify the request type:   
+    ```
+    rmq_data = {
+            "task" : "transcribe",
+            "audio_info" : audio_info.length,
+            "obj_id" : transcribed_audio_obj.id,
+            "storage_id" : storage_obj.id
+        }
+    ```
 
 ## Application/Web Service Uniqueness
-Although there are a few song recognizer software, only few could support a simple yet effective function and webservice that could integrate multiple platforms. Currently, there are no song recognizer platform that could automatically fetch result from Genius and Last.FM, and if you're an avid Last.FM user, this web service is for you. Just upload a small clip of a song, and this service will fetch the corresponding Genius and Last.FM details for your convenience! No longer are the days you have to manually find the song after obtaining the title. And best of all, this is the only platform where you can integrate it anywhere that supports file upload and JSON result!  
-     
-On top of this, you can also access several other features such as song randomizer that also fetches data from Genius and Last.FM. Now if you want something fresh, just hit up the randomizer and start listening to new songs for you!
+Currently, there are no audio transcription service that is available instantly, on-the-go, efficient, and with ease such as Audio Central, enabling people such as student or workers to capture the moment, easily transcripting audio to text without hassle. There are other alternatives such as MonkeyLearn, but they are paid services and are hard to use, requiring you to use API and other nonsense, and they are not as modular as this web service. Audio Central will provide the service you need with ease, and with flexibility.    
+
 
 
 ---
